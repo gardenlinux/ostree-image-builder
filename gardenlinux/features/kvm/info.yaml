@@ -1,0 +1,6 @@
+description: "kvm and qemu platform"
+type: platform
+features:
+  include: 
+    - cloud
+    - _ignite

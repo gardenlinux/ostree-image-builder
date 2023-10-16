@@ -1,0 +1,5 @@
+description: "OpenStack platform (cloud-init, open-vm-tools)"
+type: platform
+features:
+  include: 
+    - cloud

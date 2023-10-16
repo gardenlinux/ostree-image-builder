@@ -1,0 +1,8 @@
+description: 'server layer with complete init system (systemd)'
+type: element
+features:
+  include:
+    - base
+    - ssh
+    - log
+    - _selinux

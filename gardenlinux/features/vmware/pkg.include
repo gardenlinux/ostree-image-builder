@@ -1,0 +1,6 @@
+python3-cffi-backend
+python3-boto
+cloud-init
+dmidecode
+open-vm-tools
+python3-netifaces

@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+
+set -Eeufo pipefail
+
+export PKCS11_MODULE_PATH="/usr/lib/$(uname -m)-linux-gnu/pkcs11/aws_kms_pkcs11.so"
+
+conf=
+ca_base=
+algo=RSA
+algo_opt=
+aws_kms_key_spec=
+days=3650
+ext_file=
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--conf)
+			conf="$2"
+			shift 2
+			;;
+		--ca)
+			ca_base="${2%.crt}"
+			if [ -n "$ca_base" ] && [ "$ca_base.crt" != "$2" ]; then
+				echo "CA file must end in .crt" >&2
+				exit 1
+			fi
+			shift 2
+			;;
+		--algorithm)
+			algo="$2"
+			shift 2
+			;;
+		--algorithm-options)
+			algo_opt="$2"
+			shift 2
+			;;
+		--aws-kms-key-spec)
+			aws_kms_key_spec="$2"
+			shift 2
+			;;
+		--days)
+			days="$2"
+			shift 2
+			;;
+		--extensions)
+			ext_file="$2"
+			shift 2
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+if [ -n "$conf" ]; then
+	while IFS='=' read -r key value; do
+		declare "$key"="$value"
+	done < <(envsubst < "$conf")
+fi
+
+if [ -z "$algo_opt" ]; then
+	case "$algo" in
+		RSA)
+			algo_opt=rsa_keygen_bits:4096
+			;;
+		*)
+			echo "algorithm options not set and can't be inferred for algorithm $algo" >&2
+			exit 1
+			;;
+	esac
+fi
+
+engine_params=()
+if [ -n "$ca_base" ]; then
+	if [ ! -f "$ca_base.crt" ]; then
+		echo "$ca_base.crt does not exist" >&2
+		exit 1
+	fi
+
+	if [ -f "$ca_base.key" ]; then
+		ca_key_params=(-CAkey "$ca_base.key")
+	elif [ -f "$ca_base.arn" ]; then
+		engine_params+=(-engine pkcs11)
+		ca_key_params=(-CAkeyform engine -CAkey "pkcs11:token=$(basename "$(cat "$ca_base.arn")" | cut -c -32)")
+	else
+		echo "neither $ca_base.key nor $ca_base.arn exists, but at least one is required" >&2
+		exit 1
+	fi
+fi
+
+base="${1%.crt}"
+if [ "$base.crt" != "$1" ]; then
+	echo "output file must end in .crt" >&2
+	exit 1
+fi
+
+if [ -z "$aws_kms_key_spec" ]; then
+	echo "Generating $algo private key -> $base.key"
+	openssl genpkey -algorithm "$algo" -pkeyopt "$algo_opt" -out "$base.key"
+
+	key_params=(-key "$base.key")
+else
+	echo "Generating AWS KMS backed $aws_kms_key_spec private key -> $base.arn"
+	aws kms create-key \
+		--description "$CERT_CN" \
+		--key-usage SIGN_VERIFY \
+		--customer-master-key-spec "$aws_kms_key_spec" \
+		--query "KeyMetadata.Arn" \
+		--output text > "$base.arn"
+
+	engine_params+=(-engine pkcs11)
+	key_params=(-keyform engine -key "pkcs11:token=$(basename "$(cat "$base.arn")" | cut -c -32)")
+fi
+
+subj="/CN=$CERT_CN/C=$CERT_C/L=$CERT_L/O=$CERT_O/OU=$CERT_OU/emailAddress=$CERT_E/"
+
+ext_opts=()
+if [ -n "$ext_file" ]; then
+	ext_file_path="$(cd "$(dirname "$conf")" && realpath "$ext_file")"
+	while read -r ext; do
+		ext_opts+=(-addext "$ext")
+	done < "$ext_file_path"
+fi
+
+if [ -z "$ca_base" ]; then
+	echo "Generating self signed certificate ($CERT_CN) -> $base.crt"
+	openssl req -new -sha256 "${engine_params[@]}" "${key_params[@]}" -x509 -days "$days" -subj "$subj" "${ext_opts[@]}" -out "$base.crt"
+else
+	echo "Generating certificate ($CERT_CN), signed by $ca_base.crt -> $base.crt"
+	openssl req -new -sha256 "${engine_params[@]}" "${key_params[@]}" -subj "$subj" "${ext_opts[@]}" -out "$base.csr"
+	openssl x509 -sha256 "${engine_params[@]}" -CA "$ca_base.crt" "${ca_key_params[@]}" -set_serial "0x$(openssl rand -hex 8)" -days "$days" -req -in "$base.csr" -out "$base.crt"
+	rm "$base.csr"
+fi
+
+if [ -n "$ca_base" ]; then
+	if [ -f "$ca_base.chain" ]; then
+		echo "Writting certificate chain for $base.crt ($CERT_CN) -> $base.chain"
+		cat "$ca_base.chain" "$ca_base.crt" > "$base.chain"
+	else
+		echo "Initialising empty certificate chain (direct root CA successor) for $base.crt ($CERT_CN) -> $base.chain"
+		touch "$base.chain"
+	fi
+fi

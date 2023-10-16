@@ -1,0 +1,5 @@
+description: "azure platform (waagent)"
+type: platform
+features:
+  include: 
+    - cloud

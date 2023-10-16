@@ -1,0 +1,5 @@
+description: "aws platform (cloudinit)"
+type: platform
+features:
+  include: 
+    - cloud

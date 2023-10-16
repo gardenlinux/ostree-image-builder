@@ -1,0 +1,38 @@
+name: Repo
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  debian-repo:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ amd64, arm64 ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Build the repo
+        run: ./build ostreeRepo-${{ matrix.arch }}
+        working-directory: ./debian
+
+  gardenlinux-repo:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ amd64, arm64 ]
+        platform: [ kvm, metal ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Build the repo
+        run: ./build ${{ matrix.platform }}_dev_curl-ostreeRepo-${{ matrix.arch }}
+        working-directory: ./gardenlinux

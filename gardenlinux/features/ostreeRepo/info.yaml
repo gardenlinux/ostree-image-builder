@@ -1,0 +1,5 @@
+description: 'image-based system using OSTree'
+type: flag
+features:
+  exclude:
+    - _boot

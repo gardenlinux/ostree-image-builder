@@ -1,0 +1,11 @@
+[Match]
+Name=en* eth*
+
+[Network]
+DHCP=yes
+LLDP=true
+EmitLLDP=true
+
+[DHCPv4]
+UseDomains=true
+UseMTU=true

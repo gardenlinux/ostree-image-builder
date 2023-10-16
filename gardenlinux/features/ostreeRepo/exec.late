@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo OSTree builder
+ostree --version
+
+OSTREE_SYSROOT=/sysroot
+
+kernel="$(find /boot -name 'vmlinuz-*' | sort -V | tail -n 1)"
+version="${kernel#*-}"
+
+# Adapt to ostree root-fs requirements, see https://ostreedev.github.io/ostree/adapting-existing/
+
+declare -A TOPLEVEL_LINKS=(
+    ["home"]="var/home"
+    ["media"]="run/media"
+    ["mnt"]="var/mnt"
+    ["opt"]="var/opt"
+    # ["ostree"]="$OSTREE_SYSROOT/ostree"
+    # ["root"]="var/roothome"
+    ["srv"]="var/srv"
+)
+
+for link in "${!TOPLEVEL_LINKS[@]}"; do
+    target=${TOPLEVEL_LINKS[$link]}
+    echo mv $link $(dirname $target)
+    mv $link $(dirname $target)
+    echo ln -sf $target $link
+    ln -sf $target $link
+done
+
+mv root var/roothome
+ln -sf var/roothome root
+
+ln -s sysroot/ostree ostree
+
+echo $(date --utc +%Y-%m-%dT%H:%M%Z) > /timestamp
+
+
+# Using a heredoc to create the update script in the root-fs
+# This script is a workaround for multiple issues
+# - the *.origin files lack the remote in the refspec
+# - OSTree won't update the bootloader entries on the ESP
+# Syntax taken from https://tldp.org/LDP/abs/html/here-docs.html
+(
+cat <<'EOF'
+#!/usr/bin/bash
+
+echo Performing OSTree upgrade
+
+ostree log gardenlinux/today/arm64
+
+# Workaround for missing remote in origin file
+find /ostree/deploy/*/deploy/*.origin | while read origin_file
+do
+  sudo sed -i 's#refspec=gardenlinux#refspec=origin:gardenlinux#g' $origin_file
+done
+
+sudo ostree admin upgrade
+
+# Workaround for wrong location of boot loader entries
+sudo mkdir -p /var/ESPmnt
+sudo mount /dev/vda1 /var/ESPmnt
+sudo cp /boot/loader/entries/* /var/ESPmnt/loader/entries
+sudo umount /dev/vda1
+
+ostree log gardenlinux/today/arm64
+
+ostree admin status
+
+echo Done upgrading. Run 'sudo systemctl reboot' to boot into the latest commit.
+EOF
+) > /usr/bin/gl-ostree-upgrade
+
+chmod +x /usr/bin/gl-ostree-upgrade
+
+update-kernel-cmdline
+
+mkdir -p /boot/efi/Default
+
+for kernel in /boot/vmlinuz-*; do
+	unshare --mount bash -c 'mount -t tmpfs none /sys && mount --bind /usr/bin/false /usr/bin/systemd-detect-virt && "$@"' \
+	DRACUT_COMPRESS_XZ="$(command -v xz)" dracut \
+	--no-hostonly \
+	--force \
+	--kver "${version}" \
+	--add "ostree" \
+	--modules "bash dash systemd systemd-initrd kernel-modules kernel-modules-extra terminfo udev-rules dracut-systemd base fs-lib shutdown" \
+	--reproducible \
+	"/boot/initrd.img-${version}"
+
+	SYSTEMD_ESP_PATH=/boot/efi kernel-install add "${kernel#*-}" "${kernel}"
+done
+
+sed 's/boot\/efi\///' -i /boot/efi/loader/entries/*.conf
+
+SYSTEMD_ESP_PATH=/boot/efi bootctl --no-variables install
+
+# systemctl disable ignition-disable.service
+# systemctl disable rsyslog.service
+# systemctl disable systemd-repart.service
+# systemctl disable syslog.socket
+
+rm /etc/systemd/system/ignition-disable.service || true
+rm /usr/lib/systemd/system/initrd-root-fs.target.wants/systemd-repart.service
+rm /usr/lib/systemd/system/sysinit.target.wants/systemd-repart.service
+rm /usr/lib/systemd/system/systemd-repart.service
+
+# ostree kernel location: https://ostreedev.github.io/ostree/deployment/#contents-of-a-deployment
+mkdir -p /usr/lib/modules/$version/
+cp $kernel /usr/lib/modules/$version/vmlinuz
+cp "/boot/initrd.img-$version" /usr/lib/modules/$version/initramfs.img
+
+# Build fails if we do this here instead of in image.ostree.raw
+# mv /etc /usr/etc
+
+# Delete apt because this is an image-based system
+rm -f /etc/cron.daily/apt-compat
+rm -f /etc/logrotate.d/apt
+rm -f /etc/systemd/system/timers.target.wants/apt-daily-upgrade.timer
+rm -f /etc/systemd/system/timers.target.wants/apt-daily.timer
+rm -f /usr/bin/apt*
+rm -f /usr/bin/debconf-apt-progress
+rm -rf /etc/apt
+rm -rf /etc/dpkg
+rm -rf /usr/lib/apt/
+rm -rf /usr/lib/dpkg/methods/apt/
+rm -rf /usr/lib/systemd/system/apt*
+rm -rf /usr/share/bash-completion/completions/apt
+rm -rf /usr/share/bug/apt/
+rm -rf /var/cache/apt/
+rm -rf /var/lib/apt/
+rm -rf /var/lib/dpkg
+rm -rf /var/log/apt/
+
+find "/var/log/" -type f -delete

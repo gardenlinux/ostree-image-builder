@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+export PATH="/builder/image.d:$PATH"
+
+rootfs_work="$(mktemp -d)"
+mount -t tmpfs tmpfs "$rootfs_work"
+
+MYROOT="$(mktemp -d)"
+mount -t tmpfs tmpfs "$MYROOT"
+mkdir -p "$MYROOT"/sysroot
+OSTREE_SYSROOT="$MYROOT/sysroot"
+OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
+OSTREE_REF="debian/testing/$BUILDER_ARCH"
+
+rootfs="$1"
+output="$2"
+
+tar xf "$rootfs" -C "$rootfs_work"
+
+mv "$rootfs_work"/etc "$rootfs_work"/usr/etc
+
+mkdir -p $OSTREE_REPO
+
+if curl --head --silent --fail http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH.tar.gz 2> /dev/null;
+ then
+    echo "Using http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH.tar.gz"
+    mkdir -p $OSTREE_REPO
+    download="$(mktemp -d)"
+    pushd $download
+    curl --remote-name http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH.tar.gz
+    tar xf debian-testing-$BUILDER_ARCH.tar.gz --directory $OSTREE_REPO
+    popd
+    rm -rf $download
+ else
+    echo "Coud not download http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH.tar.gz, building new repo"
+    ostree init --mode=archive --repo=$OSTREE_REPO
+    ostree admin init-fs --modern $OSTREE_SYSROOT
+    ostree admin os-init --sysroot=$OSTREE_SYSROOT debian
+    ostree config --repo=$OSTREE_REPO set sysroot.bootloader none
+    ostree remote --repo=$OSTREE_REPO add --no-gpg-verify --no-sign-verify origin http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH $OSTREE_REF
+fi
+
+ostree commit --repo=$OSTREE_REPO --branch $OSTREE_REF --skip-if-unchanged -s "Debian testing build $(date --utc +%Y-%m-%dT%H:%M%Z)" "$rootfs_work"
+
+ostree log --repo=$OSTREE_REPO $OSTREE_REF
+
+ostree summary --update --repo=$OSTREE_REPO
+
+ostree summary --view --repo=$OSTREE_REPO
+
+tar --directory $OSTREE_REPO --create --mtime="@$BUILDER_TIMESTAMP" --sort name --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime . | gzip > "$output"

@@ -1,0 +1,10 @@
+bubblewrap
+dracut
+ostree
+ostree-boot
+podman
+podman-toolbox
+systemd-boot
+vim
+dosfstools
+sudo
