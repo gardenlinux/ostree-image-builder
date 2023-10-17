@@ -56,6 +56,8 @@ get_os () {
         # Evaluate Distribution
         if [ $host_dist = "centos" ]; then
             os="centos"
+        elif [ $host_dist = "fedora" ]; then
+            os="fedora"
         elif [ $host_dist = "debian" ] || [ $host_dist = "garden" ]; then
             os="debian"
         elif [ $host_dist = "ubuntu" ]; then
@@ -444,7 +446,7 @@ qemu_opt_uefi () {
             elif [ "$os" = debian ] || [ "$os" = ubuntu ] ; then
                 uefi_code="${uefi_code:-/usr/share/OVMF/OVMF_CODE.fd}"
                 uefi_vars="${uefi_vars:-/usr/share/OVMF/OVMF_VARS.fd}"
-            elif [ "$os" = centos ]; then
+            elif [ "$os" = centos ] || [ "$os" = fedora ] ; then
                 uefi_code="${uefi_code:-/usr/share/OVMF/OVMF_CODE.secboot.fd}"
                 uefi_vars="${uefi_vars:-/usr/share/OVMF/OVMF_VARS.secboot.fd}"
             elif [ "$os" = arch ]; then
@@ -473,7 +475,7 @@ qemu_opt_uefi () {
         elif [ "$os" = debian ] || [ "$os" = ubuntu ] ; then
             uefi_code="${uefi_code:-/usr/share/AAVMF/AAVMF_CODE.fd}"
             uefi_vars="${uefi_vars:-/usr/share/AAVMF/AAVMF_VARS.fd}"
-        elif [ "$os" = centos ]; then
+        elif [ "$os" = centos ] || [ "$os" = fedora ] ; then
             # Note: Running `AARCH64` on `x86_64` requires `qemu-system-aarch64`
             # package which is not present in official repositories
             uefi_code="${uefi_code:-/usr/share/AAVMF/AAVMF_CODE.fd}"
@@ -493,8 +495,8 @@ qemu_opt_uefi () {
     # Define UEFI options for QEMU
     if [ $uefi ]; then
 
-        [ -r $uefi_code ] || eusage "Missing uefi code at $uefi_code.\n Run: apt-get install ovmf"
-        [ -r $uefi_vars ] || eusage "Missing uefi vars at $uefi_vars.\n Run: apt-get install ovmf"
+        [ -r $uefi_code ] || eusage "Missing uefi code at $uefi_code.\n Run: apt-get install ovmf qemu-efi-aarch64"
+        [ -r $uefi_vars ] || eusage "Missing uefi vars at $uefi_vars.\n Run: apt-get install ovmf qemu-efi-aarch64"
 
         [ -e $CURR_DIR/$mac.vars ] || cp $uefi_vars $CURR_DIR/$mac.vars
 
@@ -607,7 +609,7 @@ qemu_opt_monitor () {
     fi
 
     # Add Watchdog
-    if [ $os = debian ] && [ "$no_watchdog" = 0 ]; then
+    if [ $os = debian ] && [ "$no_watchdog" = 0 ] && [ $bin_qemu != qemu-system-aarch64 ]; then
         # add a watchdog to maintain automatic reboots
         QEMU_OPTS+=("-watchdog i6300esb")
     fi
