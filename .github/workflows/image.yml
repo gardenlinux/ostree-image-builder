@@ -1,0 +1,46 @@
+name: Image
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debian-image:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ amd64, arm64 ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Build the image
+        run: ./build ostreeImage-${{ matrix.arch }}
+        working-directory: ./debian
+      - name: Upload ${{ matrix.arch }} image
+        uses: actions/upload-artifact@v3
+        with:
+          name: ostree-${{ matrix.arch }}-trixie-image
+          path: debian/.build/ostreeImage-${{ matrix.arch }}-trixie*.ostreeImage.tar.gz
+          retention-days: 2
+
+  gardenlinux-image:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ amd64, arm64 ]
+        platform: [ kvm ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Build the image
+        run: ./build ${{ matrix.platform }}_dev_curl-ostreeImage-${{ matrix.arch }}
+        working-directory: ./gardenlinux
+      - name: Upload ${{ matrix.arch }} image
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}_dev_curl-ostreeImage-${{ matrix.arch }}
+          path: gardenlinux/.build/${{ matrix.platform }}*ostreeImage-${{ matrix.arch }}*.ostreeImage.tar.gz
+          retention-days: 2
