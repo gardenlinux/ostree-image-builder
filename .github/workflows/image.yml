@@ -21,7 +21,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ostree-${{ matrix.arch }}-trixie-image
-          path: debian/.build/ostreeImage-${{ matrix.arch }}-trixie*.ostreeImage.tar.gz
+          path: debian/.build/*ostreeImage-${{ matrix.arch }}-trixie-*.ostree.raw
           retention-days: 2
 
   gardenlinux-image:
@@ -36,11 +36,11 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Build the image
-        run: ./build ${{ matrix.platform }}_dev_curl-ostreeImage-${{ matrix.arch }}
+        run: ./build ostreeImage-${{ matrix.arch }}
         working-directory: ./gardenlinux
       - name: Upload ${{ matrix.arch }} image
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.platform }}_dev_curl-ostreeImage-${{ matrix.arch }}
-          path: gardenlinux/.build/${{ matrix.platform }}*ostreeImage-${{ matrix.arch }}*.ostreeImage.tar.gz
+          name: ostreeImage-${{ matrix.arch }}
+          path: gardenlinux/.build/*ostreeImage-${{ matrix.arch }}-today-*.ostree.raw
           retention-days: 2
