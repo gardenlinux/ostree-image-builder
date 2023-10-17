@@ -16,6 +16,13 @@ OSTREE_SYSROOT="$MYROOT/sysroot"
 OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
 OSTREE_REF="gardenlinux/today/$BUILDER_ARCH"
 
+# REPO_CNAME=$(echo $BUILDER_CNAME | sed 's/Image/Repo/g')
+# FIXME proper name building
+REPO_CNAME=kvm_curl_dev-ostreeRepo-${BUILDER_ARCH}-today
+REMOTE_NAME="$REPO_CNAME".ostreeRepo
+REMOTE_ARCHIVE_NAME="$REMOTE_NAME.tar.gz"
+REMOTE_URL="http://ostree.gardenlinux.io"
+
 rootfs="$1"
 output="$2"
 
@@ -26,8 +33,8 @@ mkdir -p $OSTREE_REPO
 mkdir -p $OSTREE_SYSROOT
 download="$(mktemp -d)"
 pushd $download
-curl --remote-name http://ostree.gardenlinux.io/gardenlinux-today-$BUILDER_ARCH.tar.gz
-tar xf gardenlinux-today-$BUILDER_ARCH.tar.gz --directory $OSTREE_REPO
+curl --remote-name $REMOTE_URL/$REMOTE_ARCHIVE_NAME
+tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
 ls -l $OSTREE_REPO
 popd
 rm -rf $download

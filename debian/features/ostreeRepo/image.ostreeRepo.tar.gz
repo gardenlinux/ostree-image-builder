@@ -14,6 +14,10 @@ OSTREE_SYSROOT="$MYROOT/sysroot"
 OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
 OSTREE_REF="debian/testing/$BUILDER_ARCH"
 
+REMOTE_NAME="$BUILDER_CNAME".ostreeRepo
+REMOTE_ARCHIVE_NAME="$REMOTE_NAME.tar.gz"
+REMOTE_URL="http://ostree.gardenlinux.io"
+
 rootfs="$1"
 output="$2"
 
@@ -23,26 +27,26 @@ mv "$rootfs_work"/etc "$rootfs_work"/usr/etc
 
 mkdir -p $OSTREE_REPO
 
-if curl --head --silent --fail http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH.tar.gz 2> /dev/null;
+if curl --head --silent --fail $REMOTE_URL/$REMOTE_ARCHIVE_NAME 2> /dev/null;
  then
-    echo "Using http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH.tar.gz"
+    echo "Using $REMOTE_URL/$REMOTE_ARCHIVE_NAME"
     mkdir -p $OSTREE_REPO
     download="$(mktemp -d)"
     pushd $download
-    curl --remote-name http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH.tar.gz
-    tar xf debian-testing-$BUILDER_ARCH.tar.gz --directory $OSTREE_REPO
+    curl --remote-name $REMOTE_URL/$REMOTE_ARCHIVE_NAME
+    tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
     popd
     rm -rf $download
  else
-    echo "Coud not download http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH.tar.gz, building new repo"
+    echo "Coud not download $REMOTE_URL/$REMOTE_ARCHIVE_NAME, building new repo"
     ostree init --mode=archive --repo=$OSTREE_REPO
     ostree admin init-fs --modern $OSTREE_SYSROOT
     ostree admin os-init --sysroot=$OSTREE_SYSROOT debian
     ostree config --repo=$OSTREE_REPO set sysroot.bootloader none
-    ostree remote --repo=$OSTREE_REPO add --no-gpg-verify --no-sign-verify origin http://ostree.gardenlinux.io/debian-testing-$BUILDER_ARCH $OSTREE_REF
+    ostree remote --repo=$OSTREE_REPO add --no-gpg-verify --no-sign-verify origin $REMOTE_URL/$REMOTE_NAME $OSTREE_REF
 fi
 
-ostree commit --repo=$OSTREE_REPO --branch $OSTREE_REF --skip-if-unchanged -s "Debian testing build $(date --utc +%Y-%m-%dT%H:%M%Z)" "$rootfs_work"
+ostree commit --repo=$OSTREE_REPO --branch $OSTREE_REF --skip-if-unchanged -s "Debian $REMOTE_NAME $(date --utc +%Y-%m-%dT%H:%M%Z)" "$rootfs_work"
 
 ostree log --repo=$OSTREE_REPO $OSTREE_REF
 

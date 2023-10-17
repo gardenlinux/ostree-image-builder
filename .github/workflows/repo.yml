@@ -21,6 +21,12 @@ jobs:
       - name: Build the repo
         run: ./build ostreeRepo-${{ matrix.arch }}
         working-directory: ./debian
+      - name: Upload ${{ matrix.arch }} repo
+        uses: actions/upload-artifact@v3
+        with:
+          name: ostree-${{ matrix.arch }}-trixie-repo
+          path: debian/.build/ostreeRepo-${{ matrix.arch }}-trixie*.ostreeRepo.tar.gz
+          retention-days: 2
 
   gardenlinux-repo:
     runs-on: ubuntu-latest
@@ -36,3 +42,9 @@ jobs:
       - name: Build the repo
         run: ./build ${{ matrix.platform }}_dev_curl-ostreeRepo-${{ matrix.arch }}
         working-directory: ./gardenlinux
+      - name: Upload ${{ matrix.arch }} repo
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}_dev_curl-ostreeRepo-${{ matrix.arch }}
+          path: gardenlinux/.build/${{ matrix.platform }}*ostreeRepo-${{ matrix.arch }}*.ostreeRepo.tar.gz
+          retention-days: 2
