@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+set -e
+set -u
+set -o pipefail
 
 platforms=("metal" "kvm")
 architectures=("amd64" "arm64")
