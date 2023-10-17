@@ -4,10 +4,9 @@ set -u
 set -o pipefail
 
 platforms=("metal" "kvm")
-architectures=("amd64" "arm64")
+architectures=("arm64")
 
 pushd gardenlinux
-
 for platform in "${platforms[@]}"
 do
     for architecture in "${architectures[@]}"
@@ -15,8 +14,11 @@ do
         ./build ${platform}_dev_curl-ostreeRepo-${architecture}
     done
 done
+popd
 
-
-
-
-podp
+pushd debian
+for architecture in "${architectures[@]}"
+do
+    ./build ostreeRepo-${architecture}
+done
+popd
