@@ -13,6 +13,8 @@ See [this blog post series for background information on the PoC and its motivat
 
 Refer to [the Garden Linux README for setup instructions for the Builder](https://github.com/gardenlinux/gardenlinux#build).
 
+## Building
+
 This repo contains two os builder definitions.
 
 The `debian` directory contains a build for a debian trixie image.
@@ -44,15 +46,21 @@ $ ./build kvm_dev_curl-ostreeRepo
 $ ./build ostreeImage
 ```
 
+## Running
+
 To boot any of the images, use the `start-vm` script from the root of this repository:
 
 ```bash
-gardenlinux/bin/start-vm debian/.build/*ostreeImage-*-trixie-*.ostree.raw
-gardenlinux/bin/start-vm gardenlinux/.build/*ostreeImage-*-today-*.ostree.raw
+$ gardenlinux/bin/start-vm debian/.build/*ostreeImage-*-trixie-*.ostree.raw
+$ gardenlinux/bin/start-vm gardenlinux/.build/*ostreeImage-*-today-*.ostree.raw
 ```
 
 Check for the actual name of the image in the `.build` directory.
 
+## Upgrading
+
 Inside the booted vm, you can run the `ostree-upgrade` script to upgrade your OS to the latest version.
+
+## More information
 
 Refer to the [OSTree command man page](https://ostreedev.github.io/ostree/man/ostree.html) for instructions of using the cli.
