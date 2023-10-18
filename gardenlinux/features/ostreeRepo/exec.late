@@ -70,9 +70,9 @@ ostree admin status
 
 echo Done upgrading. Run 'sudo systemctl reboot' to boot into the latest commit.
 EOF
-) > /usr/bin/gl-ostree-upgrade
+) > /usr/bin/ostree-upgrade
 
-chmod +x /usr/bin/gl-ostree-upgrade
+chmod +x /usr/bin/ostree-upgrade
 
 update-kernel-cmdline
 
