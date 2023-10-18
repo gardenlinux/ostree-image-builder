@@ -29,3 +29,4 @@ cp -r $TEMP_DIR/gardenlinux-main/features/ssh/* gardenlinux/features/ssh/
 cp -r $TEMP_DIR/gardenlinux-main/features/vmware/* gardenlinux/features/vmware/
 cp $TEMP_DIR/gardenlinux-main/build gardenlinux/build
 
+sed -i '/    - sap/d' gardenlinux/features/server/info.yaml
