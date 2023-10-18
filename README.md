@@ -43,3 +43,16 @@ $ ./build kvm_dev_curl-ostreeRepo
 # To build the bootable image
 $ ./build ostreeImage
 ```
+
+To boot any of the images, use the `start-vm` script from the root of this repository:
+
+```bash
+gardenlinux/bin/start-vm debian/.build/*ostreeImage-*-trixie-*.ostree.raw
+gardenlinux/bin/start-vm gardenlinux/.build/*ostreeImage-*-today-*.ostree.raw
+```
+
+Check for the actual name of the image in the `.build` directory.
+
+Inside the booted vm, you can run the `ostree-upgrade` script to upgrade your OS to the latest version.
+
+Refer to the [OSTree command man page](https://ostreedev.github.io/ostree/man/ostree.html) for instructions of using the cli.
