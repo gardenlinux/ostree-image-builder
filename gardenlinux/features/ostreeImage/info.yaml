@@ -1,2 +1,2 @@
-description: 'image-based system using OSTree'
+description: 'image-based system using OSTree, bootable disk image'
 type: platform

@@ -1,4 +1,4 @@
-description: 'image-based system using OSTree'
+description: 'image-based system using OSTree, OSTree repo'
 type: element
 features:
   exclude:
