@@ -38,7 +38,7 @@ tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
 ls -l $OSTREE_REPO
 popd
 rm -rf $download
-ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --karg-append=systemd.journald.forward_to_console=1 --sysroot=$OSTREE_SYSROOT --os=gardenlinux $OSTREE_REF
+ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --sysroot=$OSTREE_SYSROOT --os=gardenlinux $OSTREE_REF
 
 boot_hash=`ls "$OSTREE_SYSROOT"/ostree/boot.1.1/gardenlinux/`
 mkdir -p "$OSTREE_SYSROOT"/ostree/boot.1.1/gardenlinux/$boot_hash/0/sysroot
