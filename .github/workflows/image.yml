@@ -11,7 +11,7 @@ jobs:
       matrix:
         arch: [ amd64, arm64 ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Build the image
@@ -32,7 +32,7 @@ jobs:
         arch: [ amd64, arm64 ]
         platform: [ kvm ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Build the image
