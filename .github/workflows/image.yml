@@ -18,13 +18,13 @@ jobs:
         run: ./build ostreeImage-${{ matrix.arch }}
         working-directory: ./debian
       - name: Rename build artifact
-        run: mv *ostreeImage-${{ matrix.arch }}-trixie-*.ostree.raw ostree-debian-image-${{ matrix.arch }}.tar.gz
+        run: mv *ostreeImage-${{ matrix.arch }}-trixie-*.ostree.raw ostree-debian-image-${{ matrix.arch }}.raw
         working-directory: ./debian/.build
       - name: Upload debian ${{ matrix.arch }} image
         uses: actions/upload-artifact@v3
         with:
           name: ostree-debian-image-${{ matrix.arch }}
-          path: debian/.build/ostree-debian-image-${{ matrix.arch }}.tar.gz
+          path: debian/.build/ostree-debian-image-${{ matrix.arch }}.raw
           retention-days: 2
 
   gardenlinux-image:
@@ -45,11 +45,11 @@ jobs:
         run: ./build ostreeImage-${{ matrix.arch }}
         working-directory: ./gardenlinux
       - name: Rename build artifact
-        run: mv *ostreeImage-${{ matrix.arch }}-today-*.ostree.raw ostree-gardenlinux-image-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
+        run: mv *ostreeImage-${{ matrix.arch }}-today-*.ostree.raw ostree-gardenlinux-image-${{ matrix.platform }}-${{ matrix.arch }}.raw
         working-directory: ./gardenlinux/.build
       - name: Upload gardenlinux ${{ matrix.platform }} ${{ matrix.arch }} image
         uses: actions/upload-artifact@v3
         with:
           name: ostree-gardenlinux-image-${{ matrix.platform }}-${{ matrix.arch }}
-          path: gardenlinux/.build/ostree-gardenlinux-image-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
+          path: gardenlinux/.build/ostree-gardenlinux-image-${{ matrix.platform }}-${{ matrix.arch }}.raw
           retention-days: 2
