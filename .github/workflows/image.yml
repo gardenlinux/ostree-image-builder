@@ -17,11 +17,14 @@ jobs:
       - name: Build the image
         run: ./build ostreeImage-${{ matrix.arch }}
         working-directory: ./debian
-      - name: Upload ${{ matrix.arch }} image
+      - name: Rename build artifact
+        run: mv *ostreeImage-${{ matrix.arch }}-trixie-*.ostree.raw ostree-debian-image-${{ matrix.arch }}.raw
+        working-directory: ./debian/.build
+      - name: Upload debian ${{ matrix.arch }} image
         uses: actions/upload-artifact@v3
         with:
-          name: ostree-${{ matrix.arch }}-trixie-image
-          path: debian/.build/*ostreeImage-${{ matrix.arch }}-trixie-*.ostree.raw
+          name: ostree-debian-image-${{ matrix.arch }}
+          path: debian/.build/ostree-debian-image-${{ matrix.arch }}.raw
           retention-days: 2
 
   gardenlinux-image:
@@ -30,17 +33,23 @@ jobs:
       fail-fast: false
       matrix:
         arch: [ amd64, arm64 ]
-        platform: [ kvm ]
+        platform: [ kvm, metal ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+      - name: Configure Build Variant
+        run: echo ${{ matrix.platform }} > features/ostreeImage/BUILD_VARIANT
+        working-directory: ./gardenlinux
       - name: Build the image
         run: ./build ostreeImage-${{ matrix.arch }}
         working-directory: ./gardenlinux
-      - name: Upload ${{ matrix.arch }} image
+      - name: Rename build artifact
+        run: mv *ostreeImage-${{ matrix.arch }}-today-*.ostree.raw ostree-gardenlinux-image-${{ matrix.platform }}-${{ matrix.arch }}.raw
+        working-directory: ./gardenlinux/.build
+      - name: Upload gardenlinux ${{ matrix.platform }} ${{ matrix.arch }} image
         uses: actions/upload-artifact@v3
         with:
-          name: ostreeImage-${{ matrix.arch }}
-          path: gardenlinux/.build/*ostreeImage-${{ matrix.arch }}-today-*.ostree.raw
+          name: ostree-gardenlinux-image-${{ matrix.platform }}-${{ matrix.arch }}
+          path: gardenlinux/.build/ostree-gardenlinux-image-${{ matrix.platform }}-${{ matrix.arch }}.raw
           retention-days: 2
