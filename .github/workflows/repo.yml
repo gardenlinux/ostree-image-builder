@@ -42,6 +42,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+      - name: Configure Build Variant
+        run: echo ${{ matrix.platform }} > features/ostreeRepo/BUILD_VARIANT
+        working-directory: ./gardenlinux
       - name: Build the repo
         run: ./build ${{ matrix.platform }}_dev_curl-ostreeRepo-${{ matrix.arch }}
         working-directory: ./gardenlinux

@@ -16,19 +16,15 @@ OSTREE_SYSROOT="$MYROOT/sysroot"
 OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
 OSTREE_REF="gardenlinux/today/$BUILDER_ARCH"
 
-# REPO_CNAME=$(echo $BUILDER_CNAME | sed 's/Image/Repo/g')
-# FIXME proper name building
-
-REPO_CNAME=kvm-ostreeRepo_curl_dev-${BUILDER_ARCH}-today
-REMOTE_NAME="$REPO_CNAME".ostreeRepo
-REMOTE_ARCHIVE_NAME="$REMOTE_NAME.tar.gz"
+# BUILD_VARIANT determains which repo we need to download (like metal, kvm, gcp, aws, azure, ..)
+BUILD_VARIANT=$(cat /builder/features/ostreeImage/BUILD_VARIANT)
 REMOTE_URL="http://ostree.gardenlinux.io"
+REMOTE_ARCHIVE_NAME=ostree-gardenlinux-repo-${BUILD_VARIANT}-${BUILDER_ARCH}.tar.gz
 
 rootfs="$1"
 output="$2"
 
 tar xf "$rootfs" -C "$rootfs_work"
-
 
 mkdir -p $OSTREE_REPO
 mkdir -p $OSTREE_SYSROOT

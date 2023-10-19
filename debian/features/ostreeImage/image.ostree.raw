@@ -16,12 +16,8 @@ OSTREE_SYSROOT="$MYROOT/sysroot"
 OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
 OSTREE_REF="debian/testing/$BUILDER_ARCH"
 
-# REPO_CNAME=$(echo $BUILDER_CNAME | sed 's/Image/Repo/g')
-# FIXME proper name building
-REPO_CNAME=ostreeRepo-${BUILDER_ARCH}-trixie
-REMOTE_NAME="$REPO_CNAME".ostreeRepo
-REMOTE_ARCHIVE_NAME="$REMOTE_NAME.tar.gz"
 REMOTE_URL="http://ostree.gardenlinux.io"
+REMOTE_ARCHIVE_NAME=ostree-debian-repo-${BUILDER_ARCH}.tar.gz
 
 rootfs="$1"
 output="$2"
