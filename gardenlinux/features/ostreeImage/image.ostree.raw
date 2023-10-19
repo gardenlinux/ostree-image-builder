@@ -17,12 +17,17 @@ OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
 OSTREE_REF="gardenlinux/today/$BUILDER_ARCH"
 
 # BUILD_VARIANT determains which repo we need to download (like metal, kvm, gcp, aws, azure, ..)
-BUILD_VARIANT=$(cat /builder/features/ostreeImage/BUILD_VARIANT)
+BUILD_VARIANT=$([ -f /builder/features/ostreeImage/BUILD_VARIANT ] && cat /builder/features/ostreeImage/BUILD_VARIANT || echo '')
+# Use kvm as default variant when nothing is configured
+BUILD_VARIANT="${BUILD_VARIANT:-kvm}"
 REMOTE_URL="http://ostree.gardenlinux.io"
 REMOTE_ARCHIVE_NAME=ostree-gardenlinux-repo-${BUILD_VARIANT}-${BUILDER_ARCH}.tar.gz
+REMOTE_NAME=gardenlinux-repo-${BUILD_VARIANT}-${BUILDER_ARCH}
 
 rootfs="$1"
 output="$2"
+
+echo Building variant $BUILD_VARIANT
 
 tar xf "$rootfs" -C "$rootfs_work"
 

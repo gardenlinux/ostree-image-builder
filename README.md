@@ -40,10 +40,22 @@ This directory contains a lot of code taken from the [gardenlinux/gardenlinux](h
 To build it yourself, run inside the `gardenlinux` directory:
 
 ```bash
+# Required: Set the platform. Must match between what is set in the BUILD_VARIANT file and in the repo argument.
+# Allowd values for PLATFORM: kvm, metal
+$ PLATFORM=kvm
+$ echo $PLATFORM > features/ostreeRepo/BUILD_VARIANT
+$ echo $PLATFORM > features/ostreeImage/BUILD_VARIANT
 # Optional: To build the OSTree Repo
-$ ./build kvm_dev_curl-ostreeRepo
+$ ./build "$PLATFORM"_dev_curl-ostreeRepo
 # To build the bootable image
 $ ./build ostreeImage
+```
+
+Alternativly, use the `./ostree-build.sh` script:
+
+```bash
+./ostree-build.sh kvm
+./ostree-build.sh metal
 ```
 
 ## Running
