@@ -13,14 +13,22 @@ See [this blog post series for background information on the PoC and its motivat
 
 Refer to [the Garden Linux README for setup instructions for the Builder](https://github.com/gardenlinux/gardenlinux#build).
 
-## Building
-
-This repo contains two os builder definitions.
+## Repo Structure
 
 The `debian` directory contains a build for a debian trixie image.
 It takes packages from the Debian apt repositories.
 
-To build it yourself, run inside the `debian` directory:
+The `gardenlinux` directory contains a build for a gardenlinux today image.
+It takes packages from the Garden Linux apt repositories.
+This directory contains a lot of code taken from the [gardenlinux/gardenlinux](https://github.com/gardenlinux/gardenlinux) repo.
+
+## Building
+
+This repo contains two os builder definitions.
+
+### Debian
+
+To build the debian image yourself, run inside the `debian` directory:
 
 ```bash
 # Optional: To build the OSTree Repo
@@ -33,11 +41,9 @@ $ ./build ostreeImage
 > The `ostreeImage` will download a copy of the OSTree repository from the Garden Linux artifact storage.
 You don't need to run `ostreeRepo` locally.
 
-The `gardenlinux` directory contains a build for a gardenlinux today image.
-It takes packages from the Garden Linux apt repositories.
-This directory contains a lot of code taken from the [gardenlinux/gardenlinux](https://github.com/gardenlinux/gardenlinux) repo.
+### Garden Linux
 
-To build it yourself, run inside the `gardenlinux` directory:
+To build the Garden Linux yourself, run inside the `gardenlinux` directory:
 
 ```bash
 # Required: Set the platform. Must match between what is set in the BUILD_VARIANT file and in the repo argument.
