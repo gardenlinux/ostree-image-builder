@@ -33,7 +33,7 @@ if curl --head --silent --fail $REMOTE_URL/$REMOTE_ARCHIVE_NAME 2> /dev/null;
     mkdir -p $OSTREE_REPO
     download="$(mktemp -d)"
     pushd $download
-    curl --remote-name $REMOTE_URL/$REMOTE_ARCHIVE_NAME
+    curl -fsSL --remote-name $REMOTE_URL/$REMOTE_ARCHIVE_NAME
     tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
     popd
     rm -rf $download
