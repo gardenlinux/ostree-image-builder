@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [ amd64, arm64 ]
-        platform: [ kvm, metal ]
+        platform: [ kvm, metal, aws ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
