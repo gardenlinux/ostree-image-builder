@@ -19,21 +19,30 @@ OSTREE_REF="debian/testing/$BUILDER_ARCH"
 REMOTE_URL="http://ostree.gardenlinux.io"
 REMOTE_ARCHIVE_NAME=ostree-debian-repo-${BUILDER_ARCH}.tar.gz
 
+LOCAL_ARCHIVE_PATH=/builder/features/ostreeImage/$REMOTE_ARCHIVE_NAME
+
 rootfs="$1"
 output="$2"
 
 tar xf "$rootfs" -C "$rootfs_work"
 
-
 mkdir -p $OSTREE_REPO
 mkdir -p $OSTREE_SYSROOT
-download="$(mktemp -d)"
-pushd $download
-curl -fsSL --remote-name $REMOTE_URL/$REMOTE_ARCHIVE_NAME
-tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
-ls -l $OSTREE_REPO
-popd
-rm -rf $download
+
+if [ -f $LOCAL_ARCHIVE_PATH ]; then
+    echo Found local OSTree repo file at $LOCAL_ARCHIVE_PATH, using it to build the image
+    tar xf $LOCAL_ARCHIVE_PATH --directory $OSTREE_REPO
+else
+    echo Did not find a local OSTree repo file, downloading from remote repo
+    download="$(mktemp -d)"
+    pushd $download
+    curl -fsSL --remote-name $REMOTE_URL/$REMOTE_ARCHIVE_NAME
+    tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
+    ls -l $OSTREE_REPO
+    popd
+    rm -rf $download
+fi
+
 ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --sysroot=$OSTREE_SYSROOT --os=debian $OSTREE_REF
 
 boot_hash=`ls "$OSTREE_SYSROOT"/ostree/boot.1.1/debian/`

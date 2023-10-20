@@ -11,5 +11,5 @@ PLATFORM=$1
 
 echo $PLATFORM > features/ostreeRepo/BUILD_VARIANT
 echo $PLATFORM > features/ostreeImage/BUILD_VARIANT
-./build "$PLATFORM"_dev_curl-ostreeRepo
+# ./build "$PLATFORM"_dev_curl-ostreeRepo
 ./build ostreeImage
