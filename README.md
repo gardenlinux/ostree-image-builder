@@ -1,4 +1,4 @@
-# OSTree Image Builder
+# OSTree Image Builder for Garden Linux and Debian
 
 [![Repo](https://github.com/gardenlinux/ostree-image-builder/actions/workflows/repo.yml/badge.svg)](https://github.com/gardenlinux/ostree-image-builder/actions/workflows/repo.yml)
 [![Image](https://github.com/gardenlinux/ostree-image-builder/actions/workflows/image.yml/badge.svg)](https://github.com/gardenlinux/ostree-image-builder/actions/workflows/image.yml)
@@ -6,6 +6,7 @@
 > [!IMPORTANT]
 > This repository is part of a proof of concept.
 The Garden Linux team does not provide any support or gurantee for this repository.
+Feel free to open an issue if something does not work, but please be aware of the experimental status of this repository.
 
 Builder for [OSTree](https://ostreedev.github.io/ostree/)-based operating system images using the [Garden Linux Builder](https://github.com/gardenlinux/builder).
 
@@ -40,6 +41,8 @@ $ ./build ostreeImage
 > [!NOTE]
 > The `ostreeImage` will download a copy of the OSTree repository from the Garden Linux artifact storage.
 You don't need to run `ostreeRepo` locally.
+To build an image based on your self-created repo, copy the output file from the `ostreeRepo` build to `debian/features/ostreeImage/ostree-debian-repo-(amd64/arm64).tar.gz`, depending on your local architecture.
+This applies both to the Garden Linux and the Debian builder.
 
 ### Garden Linux
 
