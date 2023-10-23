@@ -60,6 +60,12 @@ $ ./build "$PLATFORM"_dev_curl-ostreeRepo
 $ ./build ostreeImage
 ```
 
+> [!NOTE]
+> The `ostreeImage` will download a copy of the OSTree repository from the Garden Linux artifact storage.
+You don't need to run `ostreeRepo` locally.
+To build an image based on your self-created repo, copy the output file from the `ostreeRepo` build to `gardenlinux/features/ostreeImage/ostree-gardenlinux-repo-$(PLATFORM)-(amd64/arm64).tar.gz`, depending on your local architecture and the selected platform.
+This applies both to the Garden Linux and the Debian builder.
+
 Alternativly, use the `./ostree-build.sh` script:
 
 ```bash
