@@ -22,6 +22,8 @@ REMOTE_URL="http://ostree.gardenlinux.io"
 REMOTE_ARCHIVE_NAME=ostree-gardenlinux-repo-${BUILD_VARIANT}-${BUILDER_ARCH}.tar.gz
 REMOTE_NAME=gardenlinux-repo-${BUILD_VARIANT}-${BUILDER_ARCH}
 
+LOCAL_ARCHIVE_PATH=/builder/features/ostreeRepo/$REMOTE_ARCHIVE_NAME
+
 rootfs="$1"
 output="$2"
 
@@ -33,23 +35,25 @@ mv "$rootfs_work"/etc "$rootfs_work"/usr/etc
 
 mkdir -p $OSTREE_REPO
 
-if curl --head --silent --fail $REMOTE_URL/$REMOTE_ARCHIVE_NAME 2> /dev/null;
- then
-    echo "Using $REMOTE_URL/$REMOTE_ARCHIVE_NAME"
-    mkdir -p $OSTREE_REPO
-    download="$(mktemp -d)"
-    pushd $download
-    curl -fsSL --remote-name $REMOTE_URL/$REMOTE_ARCHIVE_NAME
-    tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
-    popd
-    rm -rf $download
- else
-    echo "Coud not download $REMOTE_URL/$REMOTE_ARCHIVE_NAME, building new repo"
+download="$(mktemp -d)"
+pushd $download
+
+if [ -f $LOCAL_ARCHIVE_PATH ]; then
+   echo "Using local file from $LOCAL_ARCHIVE_PATH"
+   tar xf $LOCAL_ARCHIVE_PATH --directory $OSTREE_REPO
+elif [ $(curl -sSL --remote-name -w "%{http_code}" $REMOTE_URL/$REMOTE_ARCHIVE_NAME) -eq 200 ]; then
+   echo "Using remote file from $REMOTE_URL/$REMOTE_ARCHIVE_NAME"
+   tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
+else
+    echo "Coud use local file from $LOCAL_ARCHIVE_PATH or remote file from $REMOTE_URL/$REMOTE_ARCHIVE_NAME, building new repo"
     ostree init --mode=archive --repo=$OSTREE_REPO
     ostree admin init-fs --modern $OSTREE_SYSROOT
     ostree admin os-init --sysroot=$OSTREE_SYSROOT gardenlinux
     ostree config --repo=$OSTREE_REPO set sysroot.bootloader none
 fi
+
+popd
+rm -rf $download
 
 ostree remote --repo=$OSTREE_REPO delete --if-exists origin
 ostree remote --repo=$OSTREE_REPO add --no-gpg-verify --no-sign-verify origin $REMOTE_URL/$REMOTE_NAME $OSTREE_REF
