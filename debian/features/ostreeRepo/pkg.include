@@ -83,6 +83,7 @@ pci.ids
 pciutils
 perl-base
 podman
+podman-compose
 polkitd
 procps
 psmisc
