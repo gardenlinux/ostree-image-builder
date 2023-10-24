@@ -162,6 +162,7 @@ usr-is-merged
 util-linux
 util-linux-extra
 uuid-runtime
+unzip
 vim
 vim-common
 vim-runtime
