@@ -1,0 +1,4 @@
+**/.mkosi-tmp*
+sysexts/mkosi/**/image*
+sysexts/mkosi/**/*raw
+sysexts/mkosi/debug/debug

@@ -2,7 +2,7 @@
 
 [man page](https://www.freedesktop.org/software/systemd/man/latest/systemd-sysext.html)
 
-Copy to dirs to `/var/lib/extensions/`
+Copy extensions (`raw` files or directories) to `/var/lib/extensions/`
 
 ```
 sudo systemd-sysext merge --force
