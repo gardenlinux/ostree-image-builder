@@ -91,7 +91,7 @@ size_uefi=$(du -b "$efi_partition" | awk '{ padded_size = $1 + (MB - ($1 % MB) %
 part_uuid_uefi=b0e0359c-007b-4361-a0d1-a7ca2d73fe3c
 echo -e "$part_uuid_uefi\tuefi\t$size_uefi\t0\t$efi_partition\tEFI" >> "$partitions"
 
-truncate -s 5G "$root_partition"
+truncate -s 6G "$root_partition"
 make_reproducible_ext4 -t 11111111 -l ROOT "$MYROOT"/sysroot "$root_partition"
 size_rootfs=$(du -b "$root_partition" | awk '{ padded_size = $1 + (MB - ($1 % MB) % MB); print (padded_size / MB) }' "MB=1048576")
 part_uuid_rootfs=a9bef950-8218-4888-9f1c-1ad8bb481807
