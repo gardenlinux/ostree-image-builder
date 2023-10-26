@@ -4,5 +4,5 @@ set -euo pipefail
 MYDIR="$(dirname "$(readlink -f "$0")")"
 
 pushd $MYDIR
-rm image.*
+rm debug*
 popd
