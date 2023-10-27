@@ -22,7 +22,7 @@ jobs:
       - name: Build debug image
         run: sudo mkosi build --base-tree=../debian-testing-base --overlay --architecture=${{ matrix.arch }}
         working-directory: ./sysexts/mkosi/debug
-      - name: Upload debian ${{ matrix.arch }} image
+      - name: Upload debug ${{ matrix.arch }} image
         uses: actions/upload-artifact@v3
         with:
           name: debug-${{ matrix.arch }}
