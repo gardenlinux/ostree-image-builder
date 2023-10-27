@@ -1,0 +1,30 @@
+name: System Extensions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  system-extensions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ x86-64, arm64 ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup mkosi
+        uses: systemd/mkosi@v18
+      - name: Build base image
+        run: sudo mkosi --architecture=${{ matrix.arch }}
+        working-directory: ./sysexts/mkosi/debian-testing-base
+      - name: Build debug image
+        run: sudo mkosi build --base-tree=../debian-testing-base --overlay --architecture=${{ matrix.arch }}
+        working-directory: ./sysexts/mkosi/debug
+      - name: Upload debian ${{ matrix.arch }} image
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-${{ matrix.arch }}
+          path: sysexts/mkosi/debug/debug.raw
+          retention-days: 2
