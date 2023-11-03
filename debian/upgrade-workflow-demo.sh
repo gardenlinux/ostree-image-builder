@@ -48,3 +48,6 @@ git checkout features/ostreeRepo/pkg.include
 
 echo "Done building the demo workflow."
 echo "Next steps: Start the virtual machine, verify the booted system has no zsh available, perform an upgrade, reboot, and verify zsh is available now."
+
+SERVER_PID=$(ps aux | grep "python3 -m http.server 9090" | head -n1 | awk '{print $2}')
+echo "PID of the local web server serving the local OSTree repo: $SERVER_PID"

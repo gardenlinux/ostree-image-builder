@@ -53,6 +53,7 @@ do
   sudo sed -i 's#refspec=debian#refspec=origin:debian#g' $origin_file
 done
 
+sudo ostree pull origin
 sudo ostree admin upgrade
 
 # Workaround for wrong location of boot loader entries
