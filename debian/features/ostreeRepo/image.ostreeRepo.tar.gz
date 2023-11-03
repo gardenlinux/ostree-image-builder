@@ -14,7 +14,10 @@ OSTREE_SYSROOT="$MYROOT/sysroot"
 OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
 OSTREE_REF="debian/testing/$BUILDER_ARCH"
 
-REMOTE_URL="http://localhost:9090" # fixme
+REMOTE_URL=$([ -f /builder/features/ostreeRepo/CONFIG_REMOTE_URL ] && cat /builder/features/ostreeRepo/CONFIG_REMOTE_URL || echo 'http://ostree.gardenlinux.io')
+
+echo REMOTE_URL: $REMOTE_URL
+
 REMOTE_ARCHIVE_NAME=ostree-debian-repo-${BUILDER_ARCH}.tar.gz
 REMOTE_NAME=debian-repo-${BUILDER_ARCH}
 
