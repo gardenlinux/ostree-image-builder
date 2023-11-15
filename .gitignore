@@ -1,0 +1,2 @@
+debian/features/**/CONFIG_*
+gardenlinux/features/**/CONFIG_*
