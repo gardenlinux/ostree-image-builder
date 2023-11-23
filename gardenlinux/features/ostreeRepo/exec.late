@@ -76,6 +76,8 @@ chmod +x /usr/bin/ostree-upgrade
 
 update-kernel-cmdline
 
+mkdir -p /sysroot
+
 mkdir -p /boot/efi/Default
 
 for kernel in /boot/vmlinuz-*; do
