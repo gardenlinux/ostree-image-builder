@@ -62,6 +62,7 @@ sudo ostree admin upgrade
 sudo mkdir -p /var/ESPmnt
 sudo mount /dev/vda1 /var/ESPmnt
 sudo cp /boot/loader/entries/* /var/ESPmnt/loader/entries
+sudo cp -r /boot/ostree /var/ESPmnt
 sudo umount /dev/vda1
 
 ostree log gardenlinux/today/arm64
