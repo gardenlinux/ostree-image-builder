@@ -2,6 +2,17 @@
 
 set -euxo pipefail
 
+REMOTE_URL=$([ -f /builder/features/ostreeImage/REMOTE_URL ] && cat /builder/features/ostreeImage/REMOTE_URL || echo http://ostree.gardenlinux.io)
+OS_NAME=$([ -f /builder/features/ostreeImage/OS_NAME ] && cat /builder/features/ostreeImage/OS_NAME || echo debian)
+REMOTE_NAME=$([ -f /builder/features/ostreeImage/REMOTE_NAME ] && cat /builder/features/ostreeImage/REMOTE_NAME || echo debian)
+REMOTE_ARCHIVE_NAME=ostree-${OS_NAME}-repo-${BUILDER_ARCH}.tar.gz
+LOCAL_ARCHIVE_PATH=/builder/features/ostreeImage/$REMOTE_ARCHIVE_NAME
+REMOTE_REPO_PATH=${OS_NAME}-repo-${BUILDER_ARCH}
+echo Build Configuration:
+echo REMOTE_URL:           $REMOTE_URL
+echo REMOTE_REPO_PATH:     $REMOTE_REPO_PATH
+echo OS_NAME:              $OS_NAME
+
 export PATH="/builder/image.d:$PATH"
 
 rootfs_work="$(mktemp -d)"
@@ -11,15 +22,10 @@ MYROOT="$(mktemp -d)"
 mount -t tmpfs tmpfs "$MYROOT"
 mkdir -p "$MYROOT"/sysroot
 mkdir -p "$MYROOT"/sysroot/ostree/deploy
-mkdir -p "$MYROOT"/sysroot/ostree/deploy/debian/var
+mkdir -p "$MYROOT"/sysroot/ostree/deploy/${OS_NAME}/var
 OSTREE_SYSROOT="$MYROOT/sysroot"
 OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
-OSTREE_REF="debian/testing/$BUILDER_ARCH"
-
-REMOTE_URL="http://ostree.gardenlinux.io"
-REMOTE_ARCHIVE_NAME=ostree-debian-repo-${BUILDER_ARCH}.tar.gz
-
-LOCAL_ARCHIVE_PATH=/builder/features/ostreeImage/$REMOTE_ARCHIVE_NAME
+OSTREE_REF="${OS_NAME}/testing/$BUILDER_ARCH"
 
 rootfs="$1"
 output="$2"
@@ -43,18 +49,18 @@ else
     rm -rf $download
 fi
 
-ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --sysroot=$OSTREE_SYSROOT --os=debian $OSTREE_REF
+ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --sysroot=$OSTREE_SYSROOT --os=${OS_NAME} $OSTREE_REF
 
-boot_hash=`ls "$OSTREE_SYSROOT"/ostree/boot.1.1/debian/`
-mkdir -p "$OSTREE_SYSROOT"/ostree/boot.1.1/debian/$boot_hash/0/sysroot
+boot_hash=`ls "$OSTREE_SYSROOT"/ostree/boot.1.1/${OS_NAME}/`
+mkdir -p "$OSTREE_SYSROOT"/ostree/boot.1.1/${OS_NAME}/$boot_hash/0/sysroot
 
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/debian/var/home
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/debian/var/home/user
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/debian/var/roothome
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/debian/var/opt
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/debian/var/srv
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/home
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/home/user
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/roothome
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/opt
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/srv
 
-chown 1000:1000 "$OSTREE_SYSROOT"/ostree/deploy/debian/var/home/user
+chown 1000:1000 "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/home/user
 
 # Build disk image, this is hacky as of now, needs rework
 # Setup bootloader

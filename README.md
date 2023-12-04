@@ -5,7 +5,7 @@
 
 > [!IMPORTANT]
 > This repository is part of a proof of concept.
-The Garden Linux team does not provide any support or gurantee for this repository.
+The Garden Linux team does not provide any support or guarantee for this repository.
 Feel free to open an issue if something does not work, but please be aware of the experimental status of this repository.
 
 Builder for [OSTree](https://ostreedev.github.io/ostree/)-based operating system images using the [Garden Linux Builder](https://github.com/gardenlinux/builder).
@@ -27,6 +27,14 @@ This directory contains a lot of code taken from the [gardenlinux/gardenlinux](h
 
 This repo contains two os builder definitions.
 
+Builds can be parameterized to change certain default values.
+To change any of the values, create a file using the parameter name inside the feature directory.
+This might be needed in both the `ostreeRepo` and the `ostreeImage` feature.
+
+- `REMOTE_URL`: Hostname to use as OSTree remote, default value is `http://ostree.gardenlinux.io`
+- `OS_NAME`: OS Name (Stateroot) used for OSTree, default value is either `debian` or `gardenlinux`, change this if you want to build a custom OS
+- `REMOTE_NAME`: Name for the OSTree remote (similar to remote 'origin' in git), default value is either `debian` or `gardenlinux`, change this if you want to build a custom OS
+
 ### Debian
 
 To build the debian image yourself, run inside the `debian` directory:
@@ -46,11 +54,13 @@ This applies both to the Garden Linux and the Debian builder.
 
 ### Garden Linux
 
+Additionally to the build parameters defined above, the Garden Linux build has another parameter called `BUILD_VARIANT`.
+
 To build the Garden Linux yourself, run inside the `gardenlinux` directory:
 
 ```bash
 # Required: Set the platform. Must match between what is set in the BUILD_VARIANT file and in the repo argument.
-# Allowd values for PLATFORM: kvm, metal
+# Allowed values for PLATFORM: kvm, metal
 $ PLATFORM=kvm
 $ echo $PLATFORM > features/ostreeRepo/BUILD_VARIANT
 $ echo $PLATFORM > features/ostreeImage/BUILD_VARIANT
@@ -66,7 +76,7 @@ You don't need to run `ostreeRepo` locally.
 To build an image based on your self-created repo, copy the output file from the `ostreeRepo` build to `gardenlinux/features/ostreeImage/ostree-gardenlinux-repo-$(PLATFORM)-(amd64/arm64).tar.gz`, depending on your local architecture and the selected platform.
 This applies both to the Garden Linux and the Debian builder.
 
-Alternativly, use the `./ostree-build.sh` script:
+Alternatively, use the `./ostree-build.sh` script:
 
 ```bash
 ./ostree-build.sh kvm
