@@ -2,6 +2,18 @@
 
 set -euxo pipefail
 
+# BUILD_VARIANT determains which repo we need to download (like metal, kvm, gcp, aws, azure, ..)
+# Use kvm as default variant when nothing is configured
+BUILD_VARIANT=$([ -f /builder/features/ostreeImage/BUILD_VARIANT ] && cat /builder/features/ostreeImage/BUILD_VARIANT || echo kvm)
+REMOTE_URL=$([ -f /builder/features/ostreeImage/REMOTE_URL ] && cat /builder/features/ostreeImage/REMOTE_URL || echo http://ostree.gardenlinux.io)
+OS_NAME=$([ -f /builder/features/ostreeImage/OS_NAME ] && cat /builder/features/ostreeImage/OS_NAME || echo gardenlinux)
+REMOTE_ARCHIVE_NAME=ostree-${OS_NAME}-repo-${BUILD_VARIANT}-${BUILDER_ARCH}.tar.gz
+LOCAL_ARCHIVE_PATH=/builder/features/ostreeImage/$REMOTE_ARCHIVE_NAME
+echo Build Configuration:
+echo BUILD_VARIANT: $BUILD_VARIANT
+echo REMOTE_URL:    $REMOTE_URL
+echo OS_NAME:       $OS_NAME
+
 export PATH="/builder/image.d:$PATH"
 
 rootfs_work="$(mktemp -d)"
@@ -11,24 +23,13 @@ MYROOT="$(mktemp -d)"
 mount -t tmpfs tmpfs "$MYROOT"
 mkdir -p "$MYROOT"/sysroot
 mkdir -p "$MYROOT"/sysroot/ostree/deploy
-mkdir -p "$MYROOT"/sysroot/ostree/deploy/gardenlinux/var
+mkdir -p "$MYROOT"/sysroot/ostree/deploy/${OS_NAME}/var
 OSTREE_SYSROOT="$MYROOT/sysroot"
 OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
-OSTREE_REF="gardenlinux/today/$BUILDER_ARCH"
-
-# BUILD_VARIANT determains which repo we need to download (like metal, kvm, gcp, aws, azure, ..)
-BUILD_VARIANT=$([ -f /builder/features/ostreeImage/BUILD_VARIANT ] && cat /builder/features/ostreeImage/BUILD_VARIANT || echo '')
-# Use kvm as default variant when nothing is configured
-BUILD_VARIANT="${BUILD_VARIANT:-kvm}"
-REMOTE_URL="http://ostree.gardenlinux.io"
-REMOTE_ARCHIVE_NAME=ostree-gardenlinux-repo-${BUILD_VARIANT}-${BUILDER_ARCH}.tar.gz
-REMOTE_NAME=gardenlinux-repo-${BUILD_VARIANT}-${BUILDER_ARCH}
-LOCAL_ARCHIVE_PATH=/builder/features/ostreeImage/$REMOTE_ARCHIVE_NAME
+OSTREE_REF="${OS_NAME}/today/$BUILDER_ARCH"
 
 rootfs="$1"
 output="$2"
-
-echo Building variant $BUILD_VARIANT
 
 tar xf "$rootfs" -C "$rootfs_work"
 
@@ -49,15 +50,15 @@ else
     rm -rf $download
 fi
 
-ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --sysroot=$OSTREE_SYSROOT --os=gardenlinux $OSTREE_REF
+ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --sysroot=$OSTREE_SYSROOT --os=${OS_NAME} $OSTREE_REF
 
-boot_hash=`ls "$OSTREE_SYSROOT"/ostree/boot.1.1/gardenlinux/`
-mkdir -p "$OSTREE_SYSROOT"/ostree/boot.1.1/gardenlinux/$boot_hash/0/sysroot
+boot_hash=`ls "$OSTREE_SYSROOT"/ostree/boot.1.1/${OS_NAME}/`
+mkdir -p "$OSTREE_SYSROOT"/ostree/boot.1.1/${OS_NAME}/$boot_hash/0/sysroot
 
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/gardenlinux/var/home
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/gardenlinux/var/roothome
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/gardenlinux/var/opt
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/gardenlinux/var/srv
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/home
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/roothome
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/opt
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/srv
 
 # Build disk image, this is hacky as of now, needs rework
 # Setup bootloader

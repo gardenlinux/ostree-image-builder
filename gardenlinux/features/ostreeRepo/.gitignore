@@ -1,2 +1,5 @@
 BUILD_VARIANT
+REMOTE_URL
+OS_NAME
+REMOTE_NAME
 ostree-gardenlinux-repo*.tar.gz
