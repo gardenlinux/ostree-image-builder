@@ -4,7 +4,7 @@ set -euxo pipefail
 
 REMOTE_URL=$([ -f /builder/features/ostreeRepo/REMOTE_URL ] && cat /builder/features/ostreeRepo/REMOTE_URL || echo http://ostree.gardenlinux.io)
 OS_NAME=$([ -f /builder/features/ostreeRepo/OS_NAME ] && cat /builder/features/ostreeRepo/OS_NAME || echo debian)
-REMOTE_NAME=$([ -f /builder/features/ostreeRepo/REMOTE_NAME ] && cat /builder/features/ostreeRepo/REMOTE_NAME || echo debian)
+REMOTE_NAME=$([ -f /builder/features/ostreeRepo/REMOTE_NAME ] && cat /builder/features/ostreeRepo/REMOTE_NAME || echo main)
 REMOTE_ARCHIVE_NAME=ostree-${OS_NAME}-repo-${BUILDER_ARCH}.tar.gz
 LOCAL_ARCHIVE_PATH=/builder/features/ostreeRepo/$REMOTE_ARCHIVE_NAME
 REMOTE_REPO_PATH=${OS_NAME}-repo-${BUILDER_ARCH}

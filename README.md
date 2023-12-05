@@ -33,7 +33,7 @@ This might be needed in both the `ostreeRepo` and the `ostreeImage` feature.
 
 - `REMOTE_URL`: Hostname to use as OSTree remote, default value is `http://ostree.gardenlinux.io`
 - `OS_NAME`: OS Name (Stateroot) used for OSTree, default value is either `debian` or `gardenlinux`, change this if you want to build a custom OS
-- `REMOTE_NAME`: Name for the OSTree remote (similar to remote 'origin' in git), default value is either `debian` or `gardenlinux`, change this if you want to build a custom OS
+- `REMOTE_NAME`: Name for the OSTree remote (similar to remote 'origin' in git), default value is `main`
 
 ### Debian
 
