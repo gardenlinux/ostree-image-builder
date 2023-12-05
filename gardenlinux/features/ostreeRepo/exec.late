@@ -53,7 +53,7 @@ ostree log gardenlinux/today/arm64
 # Workaround for missing remote in origin file
 find /ostree/deploy/*/deploy/*.origin | while read origin_file
 do
-  sudo sed -i 's#refspec=gardenlinux#refspec=origin:gardenlinux#g' $origin_file
+  sudo sed -i 's#refspec=gardenlinux#refspec=main:gardenlinux#g' $origin_file
 done
 
 sudo ostree admin upgrade
