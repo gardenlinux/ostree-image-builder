@@ -10,9 +10,9 @@ OS_NAME=$([ -f /builder/features/ostreeImage/OS_NAME ] && cat /builder/features/
 REMOTE_ARCHIVE_NAME=ostree-${OS_NAME}-repo-${BUILD_VARIANT}-${BUILDER_ARCH}.tar.gz
 LOCAL_ARCHIVE_PATH=/builder/features/ostreeImage/$REMOTE_ARCHIVE_NAME
 echo Build Configuration:
-echo BUILD_VARIANT: $BUILD_VARIANT
-echo REMOTE_URL:    $REMOTE_URL
-echo OS_NAME:       $OS_NAME
+echo BUILD_VARIANT: "$BUILD_VARIANT"
+echo REMOTE_URL:    "$REMOTE_URL"
+echo OS_NAME:       "$OS_NAME"
 
 export PATH="/builder/image.d:$PATH"
 
@@ -23,7 +23,7 @@ MYROOT="$(mktemp -d)"
 mount -t tmpfs tmpfs "$MYROOT"
 mkdir -p "$MYROOT"/sysroot
 mkdir -p "$MYROOT"/sysroot/ostree/deploy
-mkdir -p "$MYROOT"/sysroot/ostree/deploy/${OS_NAME}/var
+mkdir -p "$MYROOT"/sysroot/ostree/deploy/"${OS_NAME}"/var
 OSTREE_SYSROOT="$MYROOT/sysroot"
 OSTREE_REPO=$OSTREE_SYSROOT/ostree/repo
 OSTREE_REF="${OS_NAME}/today/$BUILDER_ARCH"
@@ -33,58 +33,58 @@ output="$2"
 
 tar xf "$rootfs" -C "$rootfs_work"
 
-mkdir -p $OSTREE_REPO
-mkdir -p $OSTREE_SYSROOT
+mkdir -p "$OSTREE_REPO"
+mkdir -p "$OSTREE_SYSROOT"
 
-if [ -f $LOCAL_ARCHIVE_PATH ]; then
-    echo Found local OSTree repo file at $LOCAL_ARCHIVE_PATH, using it to build the image
-    tar xf $LOCAL_ARCHIVE_PATH --directory $OSTREE_REPO
+if [ -f "$LOCAL_ARCHIVE_PATH" ]; then
+    echo Found local OSTree repo file at "$LOCAL_ARCHIVE_PATH", using it to build the image
+    tar xf "$LOCAL_ARCHIVE_PATH" --directory "$OSTREE_REPO"
 else
     echo Did not find a local OSTree repo file, downloading from remote repo
     download="$(mktemp -d)"
-    pushd $download
-    curl -fsSL --remote-name $REMOTE_URL/$REMOTE_ARCHIVE_NAME
-    tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
-    ls -l $OSTREE_REPO
+    pushd "$download"
+    curl -fsSL --remote-name "$REMOTE_URL"/"$REMOTE_ARCHIVE_NAME"
+    tar xf "$REMOTE_ARCHIVE_NAME" --directory "$OSTREE_REPO"
+    ls -l "$OSTREE_REPO"
     popd
-    rm -rf $download
+    rm -rf "$download"
 fi
 
-ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --sysroot=$OSTREE_SYSROOT --os=${OS_NAME} $OSTREE_REF
+ostree admin deploy --karg=root=LABEL=ROOT --karg-append=rw --karg-append=efi=runtime --sysroot="$OSTREE_SYSROOT" --os="${OS_NAME}" "$OSTREE_REF"
 
-boot_hash=`ls "$OSTREE_SYSROOT"/ostree/boot.1.1/${OS_NAME}/`
-mkdir -p "$OSTREE_SYSROOT"/ostree/boot.1.1/${OS_NAME}/$boot_hash/0/sysroot
+boot_hash=$(ls "$OSTREE_SYSROOT"/ostree/boot.1.1/"${OS_NAME}"/)
+mkdir -p "$OSTREE_SYSROOT"/ostree/boot.1.1/"${OS_NAME}"/"$boot_hash"/0/sysroot
 
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/home
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/roothome
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/opt
-mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/${OS_NAME}/var/srv
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/"${OS_NAME}"/var/home
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/"${OS_NAME}"/var/roothome
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/"${OS_NAME}"/var/opt
+mkdir -p "$OSTREE_SYSROOT"/ostree/deploy/"${OS_NAME}"/var/srv
 
 # Build disk image, this is hacky as of now, needs rework
 # Setup bootloader
 boot_dir=$(mktemp -d)
-cp -r $OSTREE_SYSROOT/boot/* $boot_dir
+cp -r "$OSTREE_SYSROOT"/boot/* "$boot_dir"
 LOADER_TEMP=$(mktemp -d)
-echo BOOT_DIR: $boot_dir
-ls -la $boot_dir
-rm -rf $boot_dir/loader
+echo BOOT_DIR: "$boot_dir"
+ls -la "$boot_dir"
+rm -rf "$boot_dir"/loader
 # move to temp dir to avoid errors with systemd-boot install
-mv $boot_dir/loader.1 $LOADER_TEMP
-mkdir -p $rootfs_work/boot/efi
-mount --bind $boot_dir $rootfs_work/boot/efi
-mount --rbind /proc $rootfs_work/proc
-mount --rbind /sys $rootfs_work/sys
-ls -l $rootfs_work/usr/bin
-SYSTEMD_ESP_PATH=/boot/efi chroot $rootfs_work /usr/bin/bootctl --no-variables install
-umount -l $rootfs_work/proc
-umount -l $rootfs_work/sys
-umount $rootfs_work/boot/efi
+mv "$boot_dir"/loader.1 "$LOADER_TEMP"
+mkdir -p "$rootfs_work"/boot/efi
+mount --bind "$boot_dir" "$rootfs_work"/boot/efi
+mount --rbind /proc "$rootfs_work"/proc
+mount --rbind /sys "$rootfs_work"/sys
+ls -l "$rootfs_work"/usr/bin
+SYSTEMD_ESP_PATH=/boot/efi chroot "$rootfs_work" /usr/bin/bootctl --no-variables install
+umount -l "$rootfs_work"/proc
+umount -l "$rootfs_work"/sys
+umount "$rootfs_work"/boot/efi
 # recover from temp dir
-cp -r $LOADER_TEMP/* $boot_dir/loader.1
-cp -r $LOADER_TEMP/* $boot_dir/loader
-cp $boot_dir/loader/loader.1/entries/* $boot_dir/loader/entries
-cat $boot_dir/loader/entries/*
-echo 'timeout 7' > $boot_dir/loader/loader.conf
+cp -r "$LOADER_TEMP"/* "$boot_dir"/loader.1
+cp -r "$LOADER_TEMP"/* "$boot_dir"/loader
+cp "$boot_dir"/loader/loader.1/entries/* "$boot_dir"/loader/entries
+cat "$boot_dir"/loader/entries/*
+echo 'timeout 7' > "$boot_dir"/loader/loader.conf
 
 efi_partition=$(mktemp)
 root_partition=$(mktemp)
@@ -93,7 +93,7 @@ partitions=$(mktemp)
 # fixme: make disk size dynamic
 truncate -s 500M "$efi_partition"
 # make_reproducible_vfat $OSTREE_SYSROOT/boot "$efi_partition"
-make_reproducible_vfat -t 11111111 $boot_dir "$efi_partition"
+make_reproducible_vfat -t 11111111 "$boot_dir" "$efi_partition"
 size_uefi=$(du -b "$efi_partition" | awk '{ padded_size = $1 + (MB - ($1 % MB) % MB); print (padded_size / MB) }' "MB=1048576")
 part_uuid_uefi=b0e0359c-007b-4361-a0d1-a7ca2d73fe3c
 echo -e "$part_uuid_uefi\tuefi\t$size_uefi\t0\t$efi_partition\tEFI" >> "$partitions"
@@ -104,4 +104,4 @@ size_rootfs=$(du -b "$root_partition" | awk '{ padded_size = $1 + (MB - ($1 % MB
 part_uuid_rootfs=a9bef950-8218-4888-9f1c-1ad8bb481807
 echo -e "$part_uuid_rootfs\tlinux\t$size_rootfs\t0\t$root_partition\tROOT" >> "$partitions"
 
-makedisk $rootfs_work "$output" < "$partitions"
+makedisk "$rootfs_work" "$output" < "$partitions"
