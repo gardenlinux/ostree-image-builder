@@ -23,10 +23,10 @@ declare -A TOPLEVEL_LINKS=(
 
 for link in "${!TOPLEVEL_LINKS[@]}"; do
     target=${TOPLEVEL_LINKS[$link]}
-    echo mv $link $(dirname $target)
-    mv $link $(dirname $target)
-    echo ln -sf $target $link
-    ln -sf $target $link
+    echo mv "$link" $(dirname "$target")
+    mv "$link" $(dirname "$target")
+    echo ln -sf "$target" "$link"
+    ln -sf "$target" "$link"
 done
 
 mv root var/roothome
@@ -91,9 +91,9 @@ fi
 SYSTEMD_ESP_PATH=/boot/efi kernel-install --verbose --entry-token literal:Default add "$version" "$kernel"
 
 # ostree kernel location: https://ostreedev.github.io/ostree/deployment/#contents-of-a-deployment
-mkdir -p /usr/lib/modules/$version/
-cp $kernel /usr/lib/modules/$version/vmlinuz
-cp "/boot/initrd.img-$version" /usr/lib/modules/$version/initramfs.img
+mkdir -p /usr/lib/modules/"$version"/
+cp "$kernel" /usr/lib/modules/"$version"/vmlinuz
+cp "/boot/initrd.img-$version" /usr/lib/modules/"$version"/initramfs.img
 
 # Build fails if we do this here instead of in image.ostree.raw
 # mv /etc /usr/etc
