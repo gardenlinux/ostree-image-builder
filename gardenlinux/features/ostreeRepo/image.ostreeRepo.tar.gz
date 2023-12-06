@@ -13,10 +13,10 @@ LOCAL_ARCHIVE_PATH=/builder/features/ostreeRepo/$REMOTE_ARCHIVE_NAME
 REMOTE_REPO_PATH=${OS_NAME}-repo-${BUILD_VARIANT}-${BUILDER_ARCH}
 LOCAL_ARCHIVE_PATH=/builder/features/ostreeRepo/$REMOTE_ARCHIVE_NAME
 echo Build Configuration:
-echo BUILD_VARIANT:        $BUILD_VARIANT
-echo REMOTE_URL:           $REMOTE_URL
-echo REMOTE_REPO_PATH:     $REMOTE_REPO_PATH
-echo OS_NAME:              $OS_NAME
+echo BUILD_VARIANT:        "$BUILD_VARIANT"
+echo REMOTE_URL:           "$REMOTE_URL"
+echo REMOTE_REPO_PATH:     "$REMOTE_REPO_PATH"
+echo OS_NAME:              "$OS_NAME"
 
 export PATH="/builder/image.d:$PATH"
 
@@ -33,43 +33,43 @@ OSTREE_REF="${OS_NAME}/today/$BUILDER_ARCH"
 rootfs="$1"
 output="$2"
 
-echo Building variant $BUILD_VARIANT
+echo Building variant "$BUILD_VARIANT"
 
 tar xf "$rootfs" -C "$rootfs_work"
 
 mv "$rootfs_work"/etc "$rootfs_work"/usr/etc
 
-mkdir -p $OSTREE_REPO
+mkdir -p "$OSTREE_REPO"
 
 download="$(mktemp -d)"
-pushd $download
+pushd "$download"
 
-if [ -f $LOCAL_ARCHIVE_PATH ]; then
+if [ -f "$LOCAL_ARCHIVE_PATH" ]; then
    echo "Using local file from $LOCAL_ARCHIVE_PATH"
-   tar xf $LOCAL_ARCHIVE_PATH --directory $OSTREE_REPO
-elif [ $(curl -sSL --remote-name -w "%{http_code}" $REMOTE_URL/$REMOTE_ARCHIVE_NAME) -eq 200 ]; then
+   tar xf "$LOCAL_ARCHIVE_PATH" --directory "$OSTREE_REPO"
+elif [ $(curl -sSL --remote-name -w "%{http_code}" "$REMOTE_URL"/"$REMOTE_ARCHIVE_NAME") -eq 200 ]; then
    echo "Using remote file from $REMOTE_URL/$REMOTE_ARCHIVE_NAME"
-   tar xf $REMOTE_ARCHIVE_NAME --directory $OSTREE_REPO
+   tar xf "$REMOTE_ARCHIVE_NAME" --directory "$OSTREE_REPO"
 else
     echo "Coud use local file from $LOCAL_ARCHIVE_PATH or remote file from $REMOTE_URL/$REMOTE_ARCHIVE_NAME, building new repo"
-    ostree init --mode=archive --repo=$OSTREE_REPO
-    ostree admin init-fs --modern $OSTREE_SYSROOT
-    ostree admin os-init --sysroot=$OSTREE_SYSROOT ${OS_NAME}
-    ostree config --repo=$OSTREE_REPO set sysroot.bootloader none
+    ostree init --mode=archive --repo="$OSTREE_REPO"
+    ostree admin init-fs --modern "$OSTREE_SYSROOT"
+    ostree admin os-init --sysroot="$OSTREE_SYSROOT" "${OS_NAME}"
+    ostree config --repo="$OSTREE_REPO" set sysroot.bootloader none
 fi
 
 popd
-rm -rf $download
+rm -rf "$download"
 
-ostree remote --repo=$OSTREE_REPO delete --if-exists ${REMOTE_NAME}
-ostree remote --repo=$OSTREE_REPO add --no-gpg-verify --no-sign-verify ${REMOTE_NAME} $REMOTE_URL/$REMOTE_REPO_PATH $OSTREE_REF
+ostree remote --repo="$OSTREE_REPO" delete --if-exists "${REMOTE_NAME}"
+ostree remote --repo="$OSTREE_REPO" add --no-gpg-verify --no-sign-verify "${REMOTE_NAME}" "$REMOTE_URL"/"$REMOTE_REPO_PATH" "$OSTREE_REF"
 
-ostree commit --repo=$OSTREE_REPO --branch $OSTREE_REF --skip-if-unchanged -s "Garden Linux $BUILD_VARIANT $(date --utc +%Y-%m-%dT%H:%M%Z)" "$rootfs_work"
+ostree commit --repo="$OSTREE_REPO" --branch "$OSTREE_REF" --skip-if-unchanged -s "Garden Linux $BUILD_VARIANT $(date --utc +%Y-%m-%dT%H:%M%Z)" "$rootfs_work"
 
-ostree log --repo=$OSTREE_REPO $OSTREE_REF
+ostree log --repo="$OSTREE_REPO" "$OSTREE_REF"
 
-ostree summary --update --repo=$OSTREE_REPO
+ostree summary --update --repo="$OSTREE_REPO"
 
-ostree summary --view --repo=$OSTREE_REPO
+ostree summary --view --repo="$OSTREE_REPO"
 
-tar --directory $OSTREE_REPO --create --mtime="@$BUILDER_TIMESTAMP" --sort name --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime . | gzip > "$output"
+tar --directory "$OSTREE_REPO" --create --mtime="@$BUILDER_TIMESTAMP" --sort name --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime . | gzip > "$output"
