@@ -10,13 +10,14 @@ To get started, clone the [repository](https://github.com/gardenlinux/ostree-ima
 
 As an example, we'll build a custom system based on the Debian repositories.
 
-We'll use the [lima-vm development environment](https://github.com/gardenlinux/gardenlinux/tree/main/hack/lima-dev-env).
+We'll use the [lima-vm development environment](https://github.com/gardenlinux/gardenlinux/tree/main/hack/lima-dev-env), but you might be able to follow along in any recent Linux environment, ideally debian-based.
 
 You'll want to configure the following build settings:
 
-`REMOTE_URL` This is the hostname part of the URL of your remote repository
-
-`OS_NAME` This is the name of your OS. This will be used as an identifier by OSTree.
+| Variable     | Default Value                  | Explanation                                                                                                                       |
+| ------------ | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `REMOTE_URL` | `http://ostree.gardenlinux.io` | This is the hostname part of the URL of your remote repository. Set this to a hostname you control and where you can up the repo. |
+| `OS_NAME`    | `debian` or `gardenlinux`      | This is the name of your OS. This will be used as an identifier by OSTree.                                                        |
 
 Inside the lima vm, run the following commands to setup the build:
 
@@ -24,25 +25,23 @@ Inside the lima vm, run the following commands to setup the build:
 user@dev:~$ git clone https://github.com/gardenlinux/ostree-image-builder florianslinux
 Cloning into 'florianslinux'...
 user@dev:~$ cd florianslinux/debian
-user@dev:~/florianslinux/debian$ REMOTE_URL=http://florianslinux
+user@dev:~/florianslinux/debian$ REMOTE_URL=http://example.com
 user@dev:~/florianslinux/debian$ OS_NAME=florianslinux
-user@dev:~/florianslinux/debian$ echo $REMOTE_URL > features/ostreeRepo/REMOTE_URL
-user@dev:~/florianslinux/debian$ echo $REMOTE_URL > features/ostreeImage/REMOTE_URL
-user@dev:~/florianslinux/debian$ echo $OS_NAME > features/ostreeRepo/OS_NAME
-user@dev:~/florianslinux/debian$ echo $OS_NAME > features/ostreeImage/OS_NAME
+user@dev:~/florianslinux/debian$ echo $REMOTE_URL | tee features/{ostreeRepo,ostreeImage}/REMOTE_URL
+user@dev:~/florianslinux/debian$ echo $OS_NAME | tee features/{ostreeRepo,ostreeImage}/OS_NAME
 ```
 
 At this stage, you will want to modify the build definition.
 For example, you might want to modify `debian/features/ostreeRepo/pkg.include` which defines the packages used to build the image.
 
-
 Next, we can build our OSTree repo.
+Observe how the build configuration reflects the values you provided:
 
 ```
 user@dev:~/florianslinux/debian$ ./build ostreeRepo
 ...
  Build Configuration:
- REMOTE_URL: http://florianslinux
+ REMOTE_URL: http://example.com
  REMOTE_REPO_PATH: florianslinux-repo-arm64
  OS_NAME: florianslinux
 ...
@@ -59,12 +58,12 @@ user@dev:~/florianslinux/debian$ ./build ostreeImage
 
 We can boot this image and inspect the OSTree configuration.
 
-This image now expects a remote repository to be served at `http://florianslinux/florianslinux-repo-arm64`, based on the configuration you provided before.
+This image now expects a remote repository to be served at `http://example.com/florianslinux-repo-arm64`, based on the configuration you provided before.
 
 ```
 user@dev:~/florianslinux/debian$ ../gardenlinux/bin/start-vm .build/ostreeImage-arm64-trixie-local.ostree.raw
 user@70818c14b220:~$ ostree remote show-url main
-http://florianslinux/florianslinux-repo-arm64
+http://example.com/florianslinux-repo-arm64
 user@70818c14b220:~$ ostree admin status
 * florianslinux dc790f368399597d499ab89e4dd7809ea961d34b21e987e65f5c7da87746a33d.0
     origin refspec: florianslinux/testing/arm64
@@ -76,3 +75,10 @@ Date:  2023-12-06 18:03:15 +0000
     Debian florianslinux-repo-arm64 2023-12-06T18:02UTC
 
 ```
+
+The `ostreeRepo` and `ostreeImage` build steps will try to download a repo from `http://example.com/ostree-${OS_NAME}-repo-${ARCH}.tar.gz`, if no local file with that name exists.
+The idea is to have this done in CI like for example in [`repo.yml`](../.github/workflows/repo.yml) and [`image.yml`](../.github/workflows/image.yml).
+
+You will want to have regular rebuilds to include security fixes for the operating system.
+
+This is how you can make our own OSTree-based OS.
