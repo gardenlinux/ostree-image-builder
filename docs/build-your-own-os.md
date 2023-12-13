@@ -10,7 +10,7 @@ To get started, clone the [repository](https://github.com/gardenlinux/ostree-ima
 
 As an example, we'll build a custom system based on the Debian repositories.
 
-We'll use the [lima-vm development environment](https://github.com/gardenlinux/gardenlinux/tree/main/hack/lima-dev-env), but you might be able to follow along in any recent Linux environment, ideally debian-based.
+We'll use the [lima-vm development environment](https://github.com/gardenlinux/gardenlinux/tree/main/hack/lima-dev-env), but you might be able to follow along in any recent Linux environment with a container runtime such as podman, ideally debian-based.
 
 You'll want to configure the following build settings:
 
@@ -33,6 +33,7 @@ user@dev:~/florianslinux/debian$ echo $OS_NAME | tee features/{ostreeRepo,ostree
 
 At this stage, you will want to modify the build definition.
 For example, you might want to modify `debian/features/ostreeRepo/pkg.include` which defines the packages used to build the image.
+Most likely, you'll want to add packages wich are required for your use-case.
 
 Next, we can build our OSTree repo.
 Observe how the build configuration reflects the values you provided:
@@ -45,9 +46,16 @@ user@dev:~/florianslinux/debian$ ./build ostreeRepo
  REMOTE_REPO_PATH: florianslinux-repo-arm64
  OS_NAME: florianslinux
 ...
+
+user@dev:~/florianslinux/debian$ ls -lah .build/ostreeRepo-*-trixie-*.ostreeRepo.tar.gz
+-rw-r--r-- 1 user user 363M 2023-12-06 18:03 .build/ostreeRepo-arm64-trixie-40ae93b3.ostreeRepo.tar.gz
 ```
 
-Based on the newly built _repo_, we can build a bootable disk _image_.
+This file contains our newly built _repo_.
+
+Based on that, we can build a bootable disk _image_.
+We'll copy the repo `tar.gz` file into the `ostreeImage` directory to build the disk image from the local file.
+If we didn't do this, the build would try to download the repo from `http://example.com/ostree-${OS_NAME}-repo-${ARCH}.tar.gz`.
 
 ```
 user@dev:~/florianslinux/debian$ ARCH=$(dpkg --print-architecture)
@@ -79,6 +87,14 @@ Date:  2023-12-06 18:03:15 +0000
 The `ostreeRepo` and `ostreeImage` build steps will try to download a repo from `http://example.com/ostree-${OS_NAME}-repo-${ARCH}.tar.gz`, if no local file with that name exists.
 The idea is to have this done in CI like for example in [`repo.yml`](../.github/workflows/repo.yml) and [`image.yml`](../.github/workflows/image.yml).
 
+You can see which source repository is used in the log.
+Once you've set it up to be available on the remote, you should see a like like this in the build log:
+
+```
+Using remote file from http://example.com/ostree-${OS_NAME}-repo-${ARCH}.tar.gz
+```
+
 You will want to have regular rebuilds to include security fixes for the operating system.
 
 This is how you can make our own OSTree-based OS.
+If you run into issues, while doing this, feel free to open an issue in this repo.
