@@ -25,7 +25,7 @@ jobs:
         run: mv ostreeRepo-${{ matrix.arch }}-trixie*.ostreeRepo.tar.gz ostree-debian-repo-${{ matrix.arch }}.tar.gz
         working-directory: ./debian/.build
       - name: Upload debian ${{ matrix.arch }} repo
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ostree-debian-repo-${{ matrix.arch }}
           path: debian/.build/ostree-debian-repo-${{ matrix.arch }}.tar.gz
@@ -52,7 +52,7 @@ jobs:
         run: mv ${{ matrix.platform }}*${{ matrix.arch }}*.ostreeRepo.tar.gz ostree-gardenlinux-repo-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
         working-directory: ./gardenlinux/.build
       - name: Upload gardenlinux ${{ matrix.platform }} ${{ matrix.arch }} repo
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ostree-gardenlinux-repo-${{ matrix.platform }}-${{ matrix.arch }}
           path: gardenlinux/.build/ostree-gardenlinux-repo-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
