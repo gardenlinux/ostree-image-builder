@@ -4,3 +4,17 @@ updates:
     directory: /
     schedule:
       interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/debian"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: "docker"
+    directory: "/gardenlinux"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
