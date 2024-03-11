@@ -15,7 +15,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Setup mkosi
-        uses: systemd/mkosi@v18
+        uses: systemd/mkosi@v21
       - name: Build base image
         run: sudo mkosi --architecture=${{ matrix.arch }}
         working-directory: ./sysexts/mkosi/debian-testing-base
