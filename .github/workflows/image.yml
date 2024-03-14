@@ -12,6 +12,8 @@ jobs:
         arch: [ amd64, arm64 ]
     steps:
       - uses: actions/checkout@v4
+      # todo: remove when crun issue is resolved
+      - uses: gardenlinux/gardenlinux/.github/actions/setup/action.yml@main
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Build the image
@@ -36,6 +38,8 @@ jobs:
         platform: [ kvm, metal ]
     steps:
       - uses: actions/checkout@v4
+      # todo: remove when crun issue is resolved
+      - uses: gardenlinux/gardenlinux/.github/actions/setup/action.yml@main
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Configure Build Variant
